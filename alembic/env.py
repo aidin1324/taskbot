@@ -7,7 +7,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 
 from db import Base
-from config import get_settings
+from core.config import get_settings
 
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
