@@ -24,11 +24,11 @@ builder.add_node("enter_task_assistant", create_entry_node("task assistant", "ta
 builder.add_node("task_assistant", task_assistant)
 builder.add_edge("enter_task_assistant", "task_assistant")
 
-async def sync_task_assistant_tools(state):
+async def async_task_assistant_tools(state):
   tool_node = create_tool_node_with_fallback(task_assistant_tools)
   return await tool_node.ainvoke(state)
 
-builder.add_node("task_assistant_tools", sync_task_assistant_tools)
+builder.add_node("task_assistant_tools", async_task_assistant_tools)
 
 async def route_task_assistant(state: State):
   route = tools_condition(state)
@@ -70,6 +70,8 @@ def route_primary_assistant(state: State) -> Literal[
     tool_name = tool_calls[0]["name"]
     if tool_name == ToTaskAssistant.__name__:
       return "enter_task_assistant"
+    else:
+      return "primary_assistant_tools"
 
   return "primary_assistant"
 

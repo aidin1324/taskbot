@@ -1,6 +1,6 @@
 from .db import Base
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 
@@ -12,7 +12,7 @@ class Task(Base):
     description = Column(String, index=True)
     notify_at = Column(DateTime, index=True)
     start_date = Column(DateTime, index=True)
-    due_date = Column(DateTime, index=True)
+    status = Column(Boolean, index=True)
     completed_at = Column(DateTime, index=True)
     estimated_time = Column(Integer, index=True)
     eisenhower_cat_id = Column(Integer, ForeignKey("eisenhower_categories.id"), index=True)

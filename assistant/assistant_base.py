@@ -6,16 +6,6 @@ from core.config import get_settings
 from langchain_openai import ChatOpenAI
 
 settings = get_settings()
-model = "gpt-4o-mini"
-temperature = 0.2
-
-# Initialize the language model (shared among assistants)
-llm = ChatOpenAI(
-    model=model,
-    openai_api_key=settings.openai_api_key,
-    temperature=temperature,
-)
-
 
 class Assistant:
     def __init__(self, runnable: Runnable):
@@ -24,23 +14,36 @@ class Assistant:
     async def __call__(self, state: State, config: Optional[RunnableConfig] = None):
         while True:
             result = await self.runnable.ainvoke(state, config)
+            # print(result.tool_calls)
+            # print("\n\n\n\n\n\n\n\n")
             if len(result.tool_calls) > 1:
-                tool_call = result.tool_calls[0]
-                for i in range(1, len(result.tool_calls)):
-                    print(tool_call)
-                    print("\n\n\n\n\n\n\n\n")
-                    if result.tool_calls[i]["name"] == "ToTaskAssistant":
-                        tool_call["args"]["user_request"] += " " + result.tool_calls[i]["args"]["user_request"]
-                result.tool_calls = [tool_call]
+                
+                delegate_tools = {
+                    "ToTaskAssistant": {} 
+                }
+                new_formed_tool_calls = []
+                for i in range(len(result.tool_calls)):
+                    # print(tool_call)
+                    # print("\n\n\n\n\n\n\n\n")
+                    name = result.tool_calls[i]["name"]
+                    if name in delegate_tools:
+                        if not delegate_tools[name]:
+                            delegate_tools[name] = result.tool_calls[i]
+                        else:
+                            delegate_tools[name]["args"]["user_request"] += " " + result.tool_calls[i]["args"]["user_request"]
+                    else:
+                        new_formed_tool_calls.append(result.tool_calls[i])
+                        
+                result.tool_calls = new_formed_tool_calls + [delegate_tools[x] for x in delegate_tools if delegate_tools[x]]
                 
             from rich.style import Style
             from rich.text import Text
             
             from rich.console import Console
             console = Console()
-            value_style = Style(color="white")
+            value_style = Style(color="yellow")
             console.print(
-                Text(f"ASSISTANT BASE: {result.tool_calls}", style=value_style)
+                Text(f"ASSISTANT ToolCall: {result.tool_calls}", style=value_style)
             )
             if not result.tool_calls and (
                 not result.content

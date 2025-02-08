@@ -34,7 +34,7 @@ async def get_k_tasks_filter_date(
     try:
         async with get_session() as session:
             result = await session.execute(
-                text("SELECT * FROM tasks WHERE start_date >= :start_date AND due_date <= :end_date LIMIT :k"),
+                text("SELECT * FROM tasks WHERE start_date >= :start_date AND start_date <= :end_date LIMIT :k"),
                 {"start_date": start_date, "end_date": end_date, "k": k}
             )
             tasks = result.fetchall()
@@ -92,7 +92,6 @@ async def create_task(
                 description=description,
                 notify_at=notify_at,
                 start_date=start_date,
-                due_date=None,
                 completed_at=completed_at,
                 estimated_time=estimated_time.total_seconds() // 60,
                 eisenhower_cat_id=eisenhower_cat_id
@@ -118,9 +117,9 @@ async def update_task(
     description: Optional[str] = None,
     notify_at: Optional[datetime] = None,
     start_date: Optional[datetime] = None,
-    due_date: Optional[datetime] = None,
     completed_at: Optional[datetime] = None,
     estimated_time: Optional[timedelta] = None,
+    status: Optional[bool] = None,
     eisenhower_category: Optional[Literal[
         "Urgent and Important",
         "Not Urgent but Important", 
@@ -160,11 +159,7 @@ async def update_task(
                     text("UPDATE tasks SET start_date = :start_date WHERE id = :id"),
                     {"start_date": start_date, "id": id}
                 )
-            if due_date:
-                await session.execute(
-                    text("UPDATE tasks SET due_date = :due_date WHERE id = :id"),
-                    {"due_date": due_date, "id": id}
-                )
+
             if completed_at:
                 await session.execute(
                     text("UPDATE tasks SET completed_at = :completed_at WHERE id = :id"),
@@ -175,6 +170,11 @@ async def update_task(
                 await session.execute(
                     text("UPDATE tasks SET estimated_time = :estimated_time WHERE id = :id"),
                     {"estimated_time": estimated_minutes, "id": id}
+                )
+            if status:
+                await session.execute(
+                    text("UPDATE tasks SET status = :status WHERE id = :id"),
+                    {"status": status, "id": id}
                 )
             if eisenhower_category:
                 result_cat = await session.execute(

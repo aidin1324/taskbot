@@ -7,6 +7,7 @@ from langchain_openai import ChatOpenAI
 
 from core.config import get_settings
 from .assistant_base import Assistant
+from tool.priority_matrix import get_priority_matrix
 
 from schema.ToTaskAssistant import ToTaskAssistant
 
@@ -44,7 +45,8 @@ llm = ChatOpenAI(
 )
 
 primary_assistant_tools = [
-    ToTaskAssistant
+    ToTaskAssistant,
+    get_priority_matrix
 ]
 
 primary_assistant_runnable = primary_assistant_prompt | llm.bind_tools(
