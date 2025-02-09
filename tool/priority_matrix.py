@@ -14,7 +14,7 @@ async def get_priority_matrix(day: datetime) -> list[dict]:
             
             stmt = text(
                 """
-                SELECT t.title, t.start_date, t.description, t.estimated_time, ec.category as category
+                SELECT t.title, t.start_date, t.description, t.estimated_time, t.eisenhower_cat_id
                 FROM tasks as t
                 JOIN eisenhower_categories as ec
                 ON t.eisenhower_cat_id = ec.id
@@ -25,7 +25,7 @@ async def get_priority_matrix(day: datetime) -> list[dict]:
             result = await session.execute(stmt, {"day": day.date()})
             tasks = result.fetchall()
             
-        column = ["title", "start_date", "category"]
+        column = ["title", "start_date", "description", "estimated_time", "eisenhower_cat_id"]
         tasks = [dict(zip(column, task)) for task in tasks]
         
         months = {
@@ -49,33 +49,40 @@ async def get_priority_matrix(day: datetime) -> list[dict]:
         # print(today_date)
         # print("\n\n\n\n")
         # print(tasks)
+        eisenhower_define = {
+            "Urgent and Important": 1,
+            "Not Urgent but Important": 2,
+            "Urgent but Not Important": 3,
+            "Neither Urgent nor Important": 4
+        }
+        
         urgent_important_tasks = [
             f'<li class="task-item"><span class="task-priority"></span>{task["title"]}<span class="task-time">Начало: {task["start_date"].split()[1][:5]}</span></li>'
             for task in tasks 
-            if task["category"] == "Urgent and Important"
+            if task["eisenhower_cat_id"] == eisenhower_define["Urgent and Important"]
         ]
         
         important_not_urgent_tasks = [
             f'<li class="task-item"><span class="task-priority"></span>{task["title"]}<span class="task-time">Начало: {task["start_date"].split()[1][:5]}</span></li>'
             for task in tasks 
-            if task["category"] == "Important but Not Urgent"
+            if task["eisenhower_cat_id"] == eisenhower_define["Not Urgent but Important"]
         ]
         urgent_not_important_tasks = [
             f'<li class="task-item"><span class="task-priority"></span>{task["title"]}<span class="task-time">Начало: {task["start_date"].split()[1][:5]}</span></li>'
             for task in tasks 
-            if task["category"] == "Urgent but Not Important"
+            if task["eisenhower_cat_id"] == eisenhower_define["Urgent but Not Important"]
         ]
         
         not_urgent_not_important_tasks = [
             f'<li class="task-item"><span class="task-priority"></span>{task["title"]}<span class="task-time">Начало: {task["start_date"].split()[1][:5]}</span></li>'
             for task in tasks 
-            if task["category"] == "Neither Urgent nor Important"
+            if task["eisenhower_cat_id"] == eisenhower_define["Neither Urgent nor Important"]
         ]
-
+        # print(urgent_important_tasks + important_not_urgent_tasks + urgent_not_important_tasks + not_urgent_not_important_tasks)
         if not tasks:
             return {"error": "No tasks found for the given day."}
         
-        if render_priority_matrix(
+        if await render_priority_matrix(
             today_date,
             urgent_important_tasks,
             important_not_urgent_tasks,

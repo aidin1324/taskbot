@@ -24,7 +24,7 @@ task_assistant_prompt = ChatPromptTemplate.from_messages(
             - Confirm that the corresponding tool has been successfully executed before finalizing any task outcome.
             Please, every argument in tool should be specified by user, you should not invent any arguments.
             Current time: {time}.
-
+            
             If the user's needs cannot be met by any of your available tools or if uncertainty persists, immediately 'CompleteOrEscalate' the conversation to the primary assistant. Do not waste the user's time or invent non-existent tools or functions.
 
             Your role is to provide clear, efficient, and prompt task management support that seamlessly integrates with the overall workflow.    

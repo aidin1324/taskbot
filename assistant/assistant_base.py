@@ -18,23 +18,34 @@ class Assistant:
             # print("\n\n\n\n\n\n\n\n")
             if len(result.tool_calls) > 1:
                 
-                delegate_tools = {
-                    "ToTaskAssistant": {} 
-                }
-                new_formed_tool_calls = []
-                for i in range(len(result.tool_calls)):
-                    # print(tool_call)
-                    # print("\n\n\n\n\n\n\n\n")
-                    name = result.tool_calls[i]["name"]
-                    if name in delegate_tools:
-                        if not delegate_tools[name]:
-                            delegate_tools[name] = result.tool_calls[i]
-                        else:
-                            delegate_tools[name]["args"]["user_request"] += " " + result.tool_calls[i]["args"]["user_request"]
-                    else:
-                        new_formed_tool_calls.append(result.tool_calls[i])
+                # delegate_tools = {
+                #     "ToTaskAssistant": {} 
+                # }
+                # Если в списке есть вызов ToTaskAssistant, выбираем только его
+                to_task_calls = [tc for tc in result.tool_calls if tc["name"] == "ToTaskAssistant"]
+                if to_task_calls:
+                    # Если их несколько, можно объединить аргументы, как делалось ранее
+                    merged = to_task_calls[0]
+                    for tc in to_task_calls[1:]:
+                        merged["args"]["user_request"] += " " + tc["args"]["user_request"]
+                    result.tool_calls = [merged]
+                else:
+                    # Иначе оставляем вызовы как есть (или объединяем остальные по вашему правилу)
+                    result.tool_calls = result.tool_calls
+                # new_formed_tool_calls = []
+                # for i in range(len(result.tool_calls)):
+                #     # print(tool_call)
+                #     # print("\n\n\n\n\n\n\n\n")
+                #     name = result.tool_calls[i]["name"]
+                #     if name in delegate_tools:
+                #         if not delegate_tools[name]:
+                #             delegate_tools[name] = result.tool_calls[i]
+                #         else:
+                #             delegate_tools[name]["args"]["user_request"] += " " + result.tool_calls[i]["args"]["user_request"]
+                #     else:
+                #         new_formed_tool_calls.append(result.tool_calls[i])
                         
-                result.tool_calls = new_formed_tool_calls + [delegate_tools[x] for x in delegate_tools if delegate_tools[x]]
+                # result.tool_calls = new_formed_tool_calls + [delegate_tools[x] for x in delegate_tools if delegate_tools[x]]
                 
             from rich.style import Style
             from rich.text import Text

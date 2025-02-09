@@ -11,6 +11,7 @@ class Task(Base):
     title = Column(String, index=True)
     description = Column(String, index=True)
     notify_at = Column(DateTime, index=True)
+    notify_status = Column(Boolean, index=True, default=False)
     start_date = Column(DateTime, index=True)
     status = Column(Boolean, index=True)
     completed_at = Column(DateTime, index=True)
